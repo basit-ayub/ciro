@@ -1,0 +1,79 @@
+graph TD
+    %% Styling
+    classDef mobile fill:#02569B,stroke:#fff,stroke-width:2px,color:#fff;
+    classDef agent fill:#FF9900,stroke:#fff,stroke-width:2px,color:#000;
+    classDef mcp fill:#34A853,stroke:#fff,stroke-width:2px,color:#fff;
+    classDef data fill:#EA4335,stroke:#fff,stroke-width:2px,color:#fff;
+    classDef ext fill:#4285F4,stroke:#fff,stroke-width:2px,color:#fff;
+
+    %% Client Layer
+    subgraph Client Layer
+        A[Flutter Mobile App]:::mobile
+        A1[Live Reasoning Stadium]:::mobile
+        A2[Vision Reporting UI]:::mobile
+        A3[Twin Timeline UI]:::mobile
+        A --> A1
+        A --> A2
+        A --> A3
+    end
+
+    %% API Gateway / Routers
+    subgraph FastAPI Backend
+        B[Ingest Router]:::ext
+        B1[SSE Stream Router]:::ext
+        B2[Vision Router]:::ext
+        B3[Counterfactual Router]:::ext
+        B4[SitRep Router]:::ext
+    end
+
+    A -->|POST /signals| B
+    A1 <-->|GET /stream| B1
+    A2 -->|POST /vision| B2
+    A3 <-->|GET /counterfactual| B3
+
+    %% Agents
+    subgraph Multi-Agent System
+        C[Sentinel Agent\nGemini 3 Flash]:::agent
+        D[Analyst Agent\nGemini 3 Pro + Thinking]:::agent
+        E[Commander Agent\nGemini 3 Pro]:::agent
+    end
+
+    B --> C
+    C -->|Triage Artifact| F[(Firestore Bus)]:::data
+    F --> D
+    D -->|Situation Artifact| F
+    F --> E
+    E -->|Action Artifact| F
+
+    C -.->|Events| B1
+    D -.->|Events| B1
+    E -.->|Events| B1
+
+    %% MCP Servers
+    subgraph MCP Tooling
+        G1[ciro-signals]:::mcp
+        G2[ciro-maps]:::mcp
+        G3[ciro-dispatch]:::mcp
+        G4[ciro-alerts]:::mcp
+        G5[ciro-memory]:::mcp
+    end
+
+    C -->|Poll| G1
+    D -->|Query| G2
+    D -->|RAG| G5
+    E -->|Update Route| G2
+    E -->|Ticket| G3
+    E -->|Push/SMS| G4
+
+    %% External APIs
+    subgraph External Services
+        H1[Google Maps Routes API]:::ext
+        H2[PMD Weather / Social / CCTV]:::ext
+        H3[Rescue 1122 / Edhi]:::ext
+        H4[Twilio SMS / FCM Push]:::ext
+    end
+
+    G1 --> H2
+    G2 --> H1
+    G3 --> H3
+    G4 --> H4

@@ -1,0 +1,18 @@
+{
+  "nodes": [
+    {"id": "G10-Markaz", "lat": 33.6938, "lon": 72.9910},
+    {"id": "Kashmir-Hwy-Junction", "lat": 33.6950, "lon": 72.9880},
+    {"id": "G10-4", "lat": 33.6942, "lon": 72.9905},
+    {"id": "G9-Markaz", "lat": 33.6920, "lon": 72.9850},
+    {"id": "F10-Markaz", "lat": 33.6960, "lon": 72.9950},
+    {"id": "Service-Rd-N", "lat": 33.6970, "lon": 72.9930}
+  ],
+  "edges": [
+    {"source": "G10-Markaz", "target": "Kashmir-Hwy-Junction", "weight": 5, "capacity": 1200},
+    {"source": "G10-4", "target": "Service-Rd-N", "weight": 4, "capacity": 800},
+    {"source": "G10-Markaz", "target": "G9-Markaz", "weight": 8, "capacity": 600},
+    {"source": "Kashmir-Hwy-Junction", "target": "F10-Markaz", "weight": 6, "capacity": 1500},
+    {"source": "Service-Rd-N", "target": "F10-Markaz", "weight": 7, "capacity": 1000},
+    {"source": "G9-Markaz", "target": "Kashmir-Hwy-Junction", "weight": 9, "capacity": 800}
+  ]
+}

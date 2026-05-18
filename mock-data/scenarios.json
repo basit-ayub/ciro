@@ -1,0 +1,27 @@
+[
+  {
+    "id": 1, "name": "G-10 Markaz Urban Flood", "type": "urban_flooding", "primary": true,
+    "location": {"lat": 33.6938, "lon": 72.9910, "area_name": "G-10 Markaz, Islamabad"},
+    "signal_ids": ["sig-001", "sig-002", "sig-005", "sig-006", "sig-015", "sig-020", "sig-022", "sig-046", "sig-050"]
+  },
+  {
+    "id": 2, "name": "Saddar Karachi Heatwave", "type": "heatwave", "primary": false,
+    "location": {"lat": 24.8607, "lon": 67.0011, "area_name": "Saddar, Karachi"},
+    "signal_ids": ["sig-016", "sig-025", "sig-030", "sig-036"]
+  },
+  {
+    "id": 3, "name": "M-11 Motorway Multi-Vehicle Accident", "type": "accident", "primary": false,
+    "location": {"lat": 31.6340, "lon": 74.2623, "area_name": "Lahore-Sialkot Motorway M-11 km 47"},
+    "signal_ids": ["sig-010", "sig-017", "sig-042", "sig-045"]
+  },
+  {
+    "id": 4, "name": "Saddar Rawalpindi Fire", "type": "fire", "primary": false,
+    "location": {"lat": 33.5973, "lon": 73.0479, "area_name": "Saddar, Rawalpindi"},
+    "signal_ids": ["sig-011", "sig-023", "sig-029", "sig-040"]
+  },
+  {
+    "id": 5, "name": "KKH Landslide Blockage", "type": "landslide", "primary": false,
+    "location": {"lat": 36.3167, "lon": 74.6500, "area_name": "Karakoram Highway km 218"},
+    "signal_ids": ["sig-012", "sig-019", "sig-028", "sig-033", "sig-043", "sig-047"]
+  }
+]

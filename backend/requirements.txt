@@ -1,0 +1,41 @@
+# CIRO Backend — Python Dependencies
+
+# ── Core Framework ───────────────────────────────────────────────
+fastapi==0.115.0
+uvicorn[standard]==0.31.0
+pydantic==2.9.0
+pydantic-settings==2.5.0
+
+# ── Google AI / Gemini ───────────────────────────────────────────
+google-genai==1.0.0
+
+# ── Firebase ─────────────────────────────────────────────────────
+firebase-admin==6.5.0
+
+# ── MCP (Model Context Protocol) ────────────────────────────────
+mcp==1.0.0
+
+# ── Structured Logging ──────────────────────────────────────────
+structlog==24.4.0
+
+# ── SSE (Server-Sent Events) ────────────────────────────────────
+sse-starlette==2.1.0
+
+# ── Twilio (Voice + SMS + WhatsApp) ──────────────────────────────
+twilio==9.3.0
+
+# ── PDF Generation (SitRep) ──────────────────────────────────────
+reportlab==4.2.0
+
+# ── Graph Simulation (Counterfactual) ────────────────────────────
+networkx==3.3
+
+# ── YAML (Lexicon parsing) ──────────────────────────────────────
+pyyaml==6.0.2
+
+# ── HTTP Client ──────────────────────────────────────────────────
+httpx==0.27.0
+
+# ── Utilities ────────────────────────────────────────────────────
+python-multipart==0.0.12
+python-dotenv==1.0.1

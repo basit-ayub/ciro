@@ -1,0 +1,59 @@
+[
+  {
+    "area": "islamabad",
+    "station": "PMD Islamabad",
+    "timestamp": "2026-05-17T14:32:14Z",
+    "temperature_c": 32,
+    "humidity_pct": 89,
+    "rainfall_mm_hr": 47,
+    "rainfall_percentile": 95,
+    "wind_speed_kmh": 15,
+    "wind_direction": "NW",
+    "pressure_hpa": 1008,
+    "advisory": "Heavy rainfall warning. Flash flooding possible in low-lying areas.",
+    "forecast_6hr": "Continued heavy rainfall expected, 40-55mm/hr"
+  },
+  {
+    "area": "karachi",
+    "station": "PMD Karachi",
+    "timestamp": "2026-05-17T13:00:00Z",
+    "temperature_c": 47,
+    "humidity_pct": 22,
+    "rainfall_mm_hr": 0,
+    "rainfall_percentile": 0,
+    "wind_speed_kmh": 8,
+    "wind_direction": "SW",
+    "heat_index_c": 51,
+    "pressure_hpa": 1004,
+    "advisory": "Extreme heat warning. Heat index exceeding 50°C. Heatstroke risk critical.",
+    "forecast_6hr": "No relief expected. Temperature to remain above 45°C until sunset."
+  },
+  {
+    "area": "lahore",
+    "station": "PMD Lahore",
+    "timestamp": "2026-05-17T16:10:00Z",
+    "temperature_c": 38,
+    "humidity_pct": 55,
+    "rainfall_mm_hr": 5,
+    "rainfall_percentile": 30,
+    "wind_speed_kmh": 12,
+    "wind_direction": "E",
+    "pressure_hpa": 1010,
+    "advisory": "Normal conditions. Light intermittent rain.",
+    "forecast_6hr": "Clearing expected by evening."
+  },
+  {
+    "area": "gilgit_baltistan",
+    "station": "PMD Gilgit",
+    "timestamp": "2026-05-17T18:25:00Z",
+    "temperature_c": 18,
+    "humidity_pct": 94,
+    "rainfall_mm_hr": 62,
+    "rainfall_percentile": 99,
+    "wind_speed_kmh": 25,
+    "wind_direction": "N",
+    "pressure_hpa": 980,
+    "advisory": "Cloudburst confirmed. Extreme landslide risk on KKH and mountain roads.",
+    "forecast_6hr": "Heavy rainfall continuing. Landslide advisories active."
+  }
+]

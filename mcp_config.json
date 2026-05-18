@@ -1,0 +1,26 @@
+{
+  "mcpServers": {
+    "ciro-signals": {
+      "command": "python",
+      "args": ["mcp-servers/signals_server.py"],
+      "env": {"MOCK_MODE": "true"}
+    },
+    "ciro-maps": {
+      "command": "python",
+      "args": ["mcp-servers/maps_server.py"],
+      "env": {"GOOGLE_MAPS_API_KEY": "${GOOGLE_MAPS_API_KEY}"}
+    },
+    "ciro-dispatch": {
+      "command": "python",
+      "args": ["mcp-servers/dispatch_server.py"]
+    },
+    "ciro-alerts": {
+      "command": "python",
+      "args": ["mcp-servers/alerts_server.py"]
+    },
+    "ciro-memory": {
+      "command": "python",
+      "args": ["mcp-servers/memory_server.py"]
+    }
+  }
+}

@@ -1,156 +1,242 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'dart:io';
-// In a real app we'd use image_picker
+import 'package:image_picker/image_picker.dart';
 
-class ReportCrisisScreen extends ConsumerStatefulWidget {
+class ReportCrisisScreen extends StatefulWidget {
   const ReportCrisisScreen({super.key});
 
   @override
-  ConsumerState<ReportCrisisScreen> createState() => _ReportCrisisScreenState();
+  State<ReportCrisisScreen> createState() => _ReportCrisisScreenState();
 }
 
-class _ReportCrisisScreenState extends ConsumerState<ReportCrisisScreen> {
-  File? _imageFile;
-  bool _isAnalyzing = false;
-  Map<String, dynamic>? _analysisResult;
+class _ReportCrisisScreenState extends State<ReportCrisisScreen> {
+  String? _selectedCrisisType;
+  final TextEditingController _detailsController = TextEditingController();
+  bool _isSubmitting = false;
+  XFile? _imageFile;
+  final ImagePicker _picker = ImagePicker();
 
-  Future<void> _pickAndAnalyzeImage() async {
-    // Mocking the image picker and analysis delay
+  final List<String> _crisisTypes = [
+    'Urban Flooding',
+    'Structure Collapse',
+    'Fire Incident',
+    'Traffic / Roadblock',
+    'Medical Emergency',
+    'Other'
+  ];
+
+  void _submitReport() async {
+    if (_selectedCrisisType == null || _detailsController.text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please provide crisis type and details.')),
+      );
+      return;
+    }
+
     setState(() {
-      _isAnalyzing = true;
-      _analysisResult = null;
+      _isSubmitting = true;
     });
 
-    await Future.delayed(const Duration(seconds: 3));
+    // Mock network request
+    await Future.delayed(const Duration(seconds: 2));
 
-    // Mock response from Gemini Vision endpoint
+    if (!mounted) return;
+    
     setState(() {
-      _isAnalyzing = false;
-      _imageFile = File('mock_path'); // Mock file
-      _analysisResult = {
-        "crisis_type": "urban_flooding",
-        "severity": 4,
-        "water_depth_estimate_cm": 45,
-        "stranded_vehicles": [
-          {"bbox": [100, 150, 300, 250], "label": "Stranded Car"} // [x1, y1, x2, y2]
+      _isSubmitting = false;
+      _detailsController.clear();
+      _selectedCrisisType = null;
+      _imageFile = null;
+    });
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: const Color(0xFF1E1E1E),
+        title: const Row(
+          children: [
+            Icon(Icons.check_circle, color: Colors.greenAccent),
+            SizedBox(width: 8),
+            Text('Report Submitted', style: TextStyle(color: Colors.white)),
+          ],
+        ),
+        content: const Text(
+          'Your report has been successfully ingested by the Vision Agent and routed to the Sentinel.',
+          style: TextStyle(color: Colors.white70),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('OK', style: TextStyle(color: Colors.greenAccent)),
+          ),
         ],
-        "visible_text": ["G-10 Markaz"]
-      };
-    });
+      ),
+    );
+  }
+
+  @override
+  void dispose() {
+    _detailsController.dispose();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Vision Report')),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Container(
-              height: 300,
-              decoration: BoxDecoration(
-                color: Colors.grey[900],
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: Colors.white24),
-              ),
-              child: _imageFile == null
-                  ? const Center(child: Icon(Icons.camera_alt, size: 64, color: Colors.white24))
-                  : _buildImageWithOverlay(),
-            ),
-            const SizedBox(height: 24),
-            ElevatedButton.icon(
-              onPressed: _isAnalyzing ? null : _pickAndAnalyzeImage,
-              icon: _isAnalyzing 
-                  ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))
-                  : const Icon(Icons.upload),
-              label: Text(_isAnalyzing ? 'Gemini 3 Pro is analyzing...' : 'Upload Photo'),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.blueAccent,
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(vertical: 16),
-              ),
-            ),
-            
-            if (_analysisResult != null) ...[
-              const SizedBox(height: 24),
-              const Text('Analysis Results', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-              const SizedBox(height: 12),
-              _buildResultCard(),
-            ]
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildImageWithOverlay() {
-    // In reality, we'd use CustomPaint to draw the bounding boxes over the Image.file
-    // For this scaffold, we simulate the overlay.
-    return Stack(
-      children: [
-        Center(
+      backgroundColor: Colors.black,
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(24.0),
           child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: const [
-              Icon(Icons.image, size: 64, color: Colors.white54),
-              Text('Mock Flood Image'),
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              const Text(
+                'REPORT A CRISIS',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: 2.0,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 32),
+              
+              // Crisis Type Dropdown
+              const Text('Crisis Type', style: TextStyle(color: Colors.white70, fontSize: 14)),
+              const SizedBox(height: 8),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF1E1E1E),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: Colors.white10),
+                ),
+                child: DropdownButtonHideUnderline(
+                  child: DropdownButton<String>(
+                    value: _selectedCrisisType,
+                    dropdownColor: const Color(0xFF2A2A2A),
+                    hint: const Text('Select the type of incident', style: TextStyle(color: Colors.white38)),
+                    icon: const Icon(Icons.arrow_drop_down, color: Colors.white54),
+                    isExpanded: true,
+                    style: const TextStyle(color: Colors.white),
+                    items: _crisisTypes.map((String type) {
+                      return DropdownMenuItem<String>(
+                        value: type,
+                        child: Text(type),
+                      );
+                    }).toList(),
+                    onChanged: (String? newValue) {
+                      setState(() {
+                        _selectedCrisisType = newValue;
+                      });
+                    },
+                  ),
+                ),
+              ),
+              const SizedBox(height: 24),
+              
+              // Details Input
+              const Text('Context & Details', style: TextStyle(color: Colors.white70, fontSize: 14)),
+              const SizedBox(height: 8),
+              TextField(
+                controller: _detailsController,
+                maxLines: 5,
+                style: const TextStyle(color: Colors.white),
+                decoration: InputDecoration(
+                  hintText: 'Describe the situation (e.g., Water levels rising rapidly near the intersection...)',
+                  hintStyle: const TextStyle(color: Colors.white38),
+                  filled: true,
+                  fillColor: const Color(0xFF1E1E1E),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide.none,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 24),
+              
+              // Image Upload
+              const Text('Vision Evidence (Optional)', style: TextStyle(color: Colors.white70, fontSize: 14)),
+              const SizedBox(height: 8),
+              InkWell(
+                onTap: () async {
+                  final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
+                  if (image != null) {
+                    setState(() {
+                      _imageFile = image;
+                    });
+                  }
+                },
+                child: Container(
+                  height: 120,
+                  decoration: BoxDecoration(
+                    color: _imageFile != null ? Colors.green.withOpacity(0.1) : const Color(0xFF1E1E1E),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: _imageFile != null ? Colors.greenAccent : Colors.white10,
+                      width: 2,
+                    ),
+                  ),
+                  child: Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          _imageFile != null ? Icons.check_circle : Icons.camera_alt,
+                          size: 40,
+                          color: _imageFile != null ? Colors.greenAccent : Colors.white38,
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          _imageFile != null ? 'Attached: ${_imageFile!.name}' : 'Tap to attach photo/video',
+                          style: TextStyle(
+                            color: _imageFile != null ? Colors.greenAccent : Colors.white54,
+                            fontWeight: FontWeight.w500,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 48),
+              
+              // Submit Button
+              SizedBox(
+                height: 56,
+                child: ElevatedButton(
+                  onPressed: _isSubmitting ? null : _submitReport,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.redAccent,
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    elevation: 8,
+                  ),
+                  child: _isSubmitting
+                      ? const CircularProgressIndicator(color: Colors.white)
+                      : const Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(Icons.send),
+                            SizedBox(width: 8),
+                            Text(
+                              'SUBMIT CRITICAL REPORT',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                letterSpacing: 1.2,
+                              ),
+                            ),
+                          ],
+                        ),
+                ),
+              ),
             ],
           ),
         ),
-        // Mock Bounding Box
-        Positioned(
-          left: 100,
-          top: 100,
-          width: 150,
-          height: 80,
-          child: Container(
-            decoration: BoxDecoration(
-              border: Border.all(color: Colors.redAccent, width: 2),
-              color: Colors.redAccent.withOpacity(0.2),
-            ),
-            child: const Align(
-              alignment: Alignment.topLeft,
-              child: Container(
-                color: Colors.redAccent,
-                padding: EdgeInsets.all(2),
-                child: Text('Stranded Car', style: TextStyle(color: Colors.white, fontSize: 10)),
-              ),
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildResultCard() {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildRow('Type', _analysisResult!['crisis_type']),
-            _buildRow('Severity', '${_analysisResult!['severity']}/5'),
-            _buildRow('Water Depth', '${_analysisResult!['water_depth_estimate_cm']} cm'),
-            _buildRow('Text Found', _analysisResult!['visible_text'].join(', ')),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildRow(String label, String value) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8.0),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(label, style: const TextStyle(color: Colors.white70)),
-          Text(value, style: const TextStyle(fontWeight: FontWeight.bold)),
-        ],
       ),
     );
   }

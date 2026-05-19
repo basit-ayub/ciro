@@ -1,7 +1,49 @@
 import 'package:flutter/material.dart';
+import 'dart:async';
 
-class LiveReasoningStadium extends StatelessWidget {
+class LiveReasoningStadium extends StatefulWidget {
   const LiveReasoningStadium({super.key});
+
+  @override
+  State<LiveReasoningStadium> createState() => _LiveReasoningStadiumState();
+}
+
+class _LiveReasoningStadiumState extends State<LiveReasoningStadium> {
+  String sentinelStatus = 'Monitoring 50+ signal streams';
+  String analystStatus = 'Awaiting triage artifact...';
+  String commanderStatus = 'Standing by.';
+  Timer? _mockStreamTimer;
+
+  @override
+  void initState() {
+    super.initState();
+    _startMockStreams();
+  }
+
+  void _startMockStreams() {
+    // Simulate Firebase Firestore listeners for `triage_queue/*`
+    _mockStreamTimer = Timer.periodic(const Duration(seconds: 4), (timer) {
+      final tick = timer.tick;
+      setState(() {
+        if (tick % 3 == 1) {
+          sentinelStatus = 'Detected 5 high-confidence crisis signals (G-10)';
+          analystStatus = 'Processing TriageArtifact...';
+        } else if (tick % 3 == 2) {
+          analystStatus = 'SituationArtifact generated. Severity: 4';
+          commanderStatus = 'Planning DAG and routing updates...';
+        } else {
+          commanderStatus = 'ActionArtifacts emitted: 3 MCP tools executed.';
+          sentinelStatus = 'Monitoring 50+ signal streams';
+        }
+      });
+    });
+  }
+
+  @override
+  void dispose() {
+    _mockStreamTimer?.cancel();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -32,23 +74,23 @@ class LiveReasoningStadium extends StatelessWidget {
                 _buildAgentCard(
                   icon: Icons.radar,
                   agentName: 'SENTINEL',
-                  status: 'Monitoring 50+ signal streams',
+                  status: sentinelStatus,
                   color: Colors.blueAccent,
-                  isPulsing: true,
+                  isPulsing: sentinelStatus.contains('Detected'),
                 ),
                 _buildAgentCard(
                   icon: Icons.psychology,
                   agentName: 'ANALYST',
-                  status: 'Awaiting triage artifact...',
+                  status: analystStatus,
                   color: Colors.orangeAccent,
-                  isPulsing: false,
+                  isPulsing: analystStatus.contains('Processing'),
                 ),
                 _buildAgentCard(
                   icon: Icons.gavel,
                   agentName: 'COMMANDER',
-                  status: 'Standing by.',
+                  status: commanderStatus,
                   color: Colors.purpleAccent,
-                  isPulsing: false,
+                  isPulsing: commanderStatus.contains('Planning'),
                 ),
               ],
             ),

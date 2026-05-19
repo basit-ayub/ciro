@@ -22,6 +22,65 @@ class _MapScreenState extends ConsumerState<MapScreen> {
 
   final Set<Marker> _markers = {};
   final Set<Polyline> _polylines = {};
+  final Set<Polygon> _polygons = {};
+
+  void _triggerHellMode() {
+    setState(() {
+      // 5 colored zones for Hell Mode
+      _polygons.addAll([
+        Polygon(
+          polygonId: const PolygonId('g10_flood'),
+          points: const [LatLng(33.695, 72.990), LatLng(33.695, 72.993), LatLng(33.691, 72.993), LatLng(33.691, 72.990)],
+          fillColor: Colors.blue.withOpacity(0.4),
+          strokeColor: Colors.blueAccent,
+          strokeWidth: 2,
+        ),
+        Polygon(
+          polygonId: const PolygonId('khi_heatwave'),
+          points: const [LatLng(24.862, 67.000), LatLng(24.862, 67.003), LatLng(24.859, 67.003), LatLng(24.859, 67.000)],
+          fillColor: Colors.orange.withOpacity(0.4),
+          strokeColor: Colors.orangeAccent,
+          strokeWidth: 2,
+        ),
+        Polygon(
+          polygonId: const PolygonId('m11_accident'),
+          points: const [LatLng(31.635, 74.261), LatLng(31.635, 74.264), LatLng(31.633, 74.264), LatLng(31.633, 74.261)],
+          fillColor: Colors.red.withOpacity(0.4),
+          strokeColor: Colors.redAccent,
+          strokeWidth: 2,
+        ),
+        Polygon(
+          polygonId: const PolygonId('pindi_fire'),
+          points: const [LatLng(33.598, 73.047), LatLng(33.598, 73.049), LatLng(33.596, 73.049), LatLng(33.596, 73.047)],
+          fillColor: Colors.deepOrange.withOpacity(0.4),
+          strokeColor: Colors.deepOrangeAccent,
+          strokeWidth: 2,
+        ),
+        Polygon(
+          polygonId: const PolygonId('kkh_landslide'),
+          points: const [LatLng(36.318, 74.649), LatLng(36.318, 74.652), LatLng(36.315, 74.652), LatLng(36.315, 74.649)],
+          fillColor: Colors.brown.withOpacity(0.4),
+          strokeColor: Colors.brown,
+          strokeWidth: 2,
+        ),
+      ]);
+
+      // Example rerouting polyline for G-10 flood detour
+      _polylines.add(
+        Polyline(
+          polylineId: const PolylineId('g10_detour'),
+          points: const [
+            LatLng(33.696, 72.989),
+            LatLng(33.696, 72.994),
+            LatLng(33.690, 72.994),
+          ],
+          color: Colors.greenAccent,
+          width: 4,
+          patterns: [PatternItem.dash(10), PatternItem.gap(10)], // Simulated animated/dash look
+        ),
+      );
+    });
+  }
 
   void _onMapCreated(GoogleMapController controller) {
     _mapController = controller;
@@ -39,6 +98,7 @@ class _MapScreenState extends ConsumerState<MapScreen> {
             initialCameraPosition: _initialPosition,
             markers: _markers,
             polylines: _polylines,
+            polygons: _polygons,
             myLocationEnabled: true,
             myLocationButtonEnabled: false,
             zoomControlsEnabled: false,
@@ -66,10 +126,6 @@ class _MapScreenState extends ConsumerState<MapScreen> {
                   ),
                 ),
                 
-                const Spacer(),
-                
-                // Bottom: Live Reasoning Stadium
-                const LiveReasoningStadium(),
               ],
             ),
           ),
@@ -77,10 +133,8 @@ class _MapScreenState extends ConsumerState<MapScreen> {
       ),
       floatingActionButton: FloatingActionButton(
         backgroundColor: Theme.of(context).colorScheme.primary,
-        onPressed: () {
-          // Trigger mock signal/crisis
-        },
-        child: const Icon(Icons.warning_amber_rounded, color: Colors.white),
+        onPressed: _triggerHellMode,
+        child: const Icon(Icons.local_fire_department, color: Colors.white),
       ),
     );
   }

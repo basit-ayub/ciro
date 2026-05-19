@@ -1,7 +1,58 @@
 import 'package:flutter/material.dart';
+import 'dart:async';
 
-class TwinTimelineWidget extends StatelessWidget {
+class TwinTimelineWidget extends StatefulWidget {
   const TwinTimelineWidget({super.key});
+
+  @override
+  State<TwinTimelineWidget> createState() => _TwinTimelineWidgetState();
+}
+
+class _TwinTimelineWidgetState extends State<TwinTimelineWidget> {
+  bool isLoading = false;
+  bool isError = false;
+  double _playbackPosition = 100.0;
+  Timer? _playbackTimer;
+  bool _isPlaying = false;
+
+  void _simulateLoading() {
+    setState(() {
+      isLoading = true;
+      isError = false;
+    });
+    Future.delayed(const Duration(seconds: 2), () {
+      if (mounted) {
+        setState(() {
+          isLoading = false;
+        });
+      }
+    });
+  }
+
+  void _togglePlayback() {
+    if (_isPlaying) {
+      _playbackTimer?.cancel();
+    } else {
+      _playbackTimer = Timer.periodic(const Duration(milliseconds: 100), (timer) {
+        if (!mounted) return;
+        setState(() {
+          _playbackPosition += 1.0;
+          if (_playbackPosition > 100) {
+            _playbackPosition = 0.0;
+          }
+        });
+      });
+    }
+    setState(() {
+      _isPlaying = !_isPlaying;
+    });
+  }
+
+  @override
+  void dispose() {
+    _playbackTimer?.cancel();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -18,6 +69,17 @@ class TwinTimelineWidget extends StatelessWidget {
         children: [
           _buildHeader(),
           const Divider(height: 1, color: Colors.white24),
+          if (isLoading)
+            const Padding(
+              padding: EdgeInsets.all(32.0),
+              child: Center(child: CircularProgressIndicator(color: Colors.greenAccent)),
+            )
+          else if (isError)
+            const Padding(
+              padding: EdgeInsets.all(32.0),
+              child: Center(child: Text("Failed to load counterfactual simulation.", style: TextStyle(color: Colors.redAccent))),
+            )
+          else ...[
           Row(
             children: [
               Expanded(child: _buildTimelineSide(
@@ -37,8 +99,43 @@ class TwinTimelineWidget extends StatelessWidget {
               )),
             ],
           ),
+          _buildScrubber(),
           const Divider(height: 1, color: Colors.white24),
           _buildImpactFooter(),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildScrubber() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      color: Colors.black12,
+      child: Row(
+        children: [
+          IconButton(
+            icon: Icon(_isPlaying ? Icons.pause : Icons.play_arrow, color: Colors.white),
+            onPressed: _togglePlayback,
+          ),
+          Expanded(
+            child: Slider(
+              value: _playbackPosition,
+              min: 0,
+              max: 100,
+              activeColor: Colors.greenAccent,
+              inactiveColor: Colors.white24,
+              onChanged: (val) {
+                setState(() {
+                  _playbackPosition = val;
+                });
+              },
+            ),
+          ),
+          IconButton(
+            icon: const Icon(Icons.refresh, color: Colors.white54),
+            onPressed: _simulateLoading,
+          ),
         ],
       ),
     );

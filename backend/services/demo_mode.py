@@ -84,3 +84,22 @@ async def demo_delay(seconds: float = 0.5):
     settings = get_settings()
     if settings.demo_mode:
         await asyncio.sleep(seconds)
+
+def load_mock_scenario(scenario_id: int) -> Optional[dict]:
+    """Load a predefined mock scenario for stable demos."""
+    scenario_path = Path("mock-data/scenarios.json")
+    if not scenario_path.exists():
+        log.warning("mock_scenarios_missing", path=str(scenario_path))
+        return None
+        
+    try:
+        with open(scenario_path, "r") as f:
+            scenarios = json.load(f)
+            for s in scenarios:
+                if s.get("id") == scenario_id:
+                    log.info("mock_scenario_loaded", scenario_id=scenario_id, name=s.get("name"))
+                    return s
+    except Exception as e:
+        log.error("mock_scenario_load_error", error=str(e))
+        
+    return None

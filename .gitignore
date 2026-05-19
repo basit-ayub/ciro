@@ -45,3 +45,13 @@ mobile/.flutter-plugins-dependencies
 # Temp
 *.tmp
 *.bak
+
+# Android SDK
+android_sdk/
+
+# Linux Specific
+mobile/linux/
+linux/
+
+# Environment
+env

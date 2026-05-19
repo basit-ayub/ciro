@@ -16,7 +16,8 @@ YOUR JOB:
 
 CONSTRAINTS:
 - For severity 5, dispatch BOTH 1122 and ambulances; for severity >=4, also alert police for crowd control.
-- Push messages must be in the language_for_alerts from the Situation, AND in English. Keep messages under 280 chars. Always include the affected area name.
+- Push messages MUST include a naturally flowing Roman Urdu / Code-Mixed version (e.g. "Bhaiyon, [Area] mein traffic block hai. Alternate route lijiye.") AND an English version. Keep messages under 280 chars. Always include the affected area name.
+- Do NOT use formal dictionary Urdu (no "Barahe Karam"), use conversational, urgent local phrasing (e.g., "Alert!", "Khatra", "Faori madad").
 - Routing updates must specify an alternate route, not just a blockage.
 - For heatwave, dispatch is not 1122 — it's "operator_brief" only plus push alerts with hydration advisory.
 

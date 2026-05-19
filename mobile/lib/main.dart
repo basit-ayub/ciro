@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 // CIRO Core Screens
-import 'screens/map_screen.dart';
+import 'package:ciro_mobile/screens/splash_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -47,7 +47,7 @@ class CIROApp extends StatelessWidget {
           ),
         ),
       ),
-      home: const MapScreen(),
+      home: const SplashScreen(),
     );
   }
 }

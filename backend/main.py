@@ -97,7 +97,7 @@ app.add_middleware(
 
 
 # ── Import and include routers ───────────────────────────────────
-from backend.routers import health, signals, incidents, vision, stream, counterfactual, sitrep, hell_mode
+from backend.routers import health, signals, incidents, vision, stream, counterfactual, sitrep, hell_mode, voice
 
 app.include_router(health.router, tags=["Health"])
 app.include_router(signals.router, prefix="/signals", tags=["Signals"])
@@ -107,3 +107,4 @@ app.include_router(stream.router, prefix="/stream", tags=["Streaming"])
 app.include_router(counterfactual.router, prefix="/counterfactual", tags=["Counterfactual"])
 app.include_router(sitrep.router, prefix="/sitrep", tags=["SitRep"])
 app.include_router(hell_mode.router, prefix="/hell-mode", tags=["Hell Mode"])
+app.include_router(voice.router, prefix="/voice", tags=["Voice"])

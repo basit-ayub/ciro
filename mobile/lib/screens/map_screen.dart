@@ -12,6 +12,7 @@ class MapScreen extends ConsumerStatefulWidget {
 
 class _MapScreenState extends ConsumerState<MapScreen> {
   GoogleMapController? _mapController;
+  String? _previousActiveId;
 
   // Initial map center
   static const CameraPosition _initialPosition = CameraPosition(
@@ -34,6 +35,10 @@ class _MapScreenState extends ConsumerState<MapScreen> {
     _polylines.clear();
     _polygons.clear();
 
+    if (activeId == null) {
+      _previousActiveId = null;
+    }
+
     ConfirmedDisaster? activeDisaster;
     if (activeId != null) {
       activeDisaster = disasters.firstWhere(
@@ -53,8 +58,13 @@ class _MapScreenState extends ConsumerState<MapScreen> {
     }
 
     if (activeDisaster != null) {
-      // 1. Move map camera to active disaster center
-      _moveCamera(activeDisaster.latLng);
+      // 1. Fit bounds to contain both Emergency Department and Disaster Zone
+      if (activeId != _previousActiveId) {
+        _previousActiveId = activeId;
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          _fitBounds(activeDisaster!.emergencyDeptLatLng, activeDisaster.latLng);
+        });
+      }
 
       // 2. Plot Blocked Segment (Thick Red Polyline)
       _polylines.add(
@@ -67,7 +77,20 @@ class _MapScreenState extends ConsumerState<MapScreen> {
         ),
       );
 
-      // 3. Blocked warning icon marker
+      // 3. Emergency Dept Marker
+      _markers.add(
+        Marker(
+          markerId: const MarkerId('emergency_dept'),
+          position: activeDisaster.emergencyDeptLatLng,
+          infoWindow: InfoWindow(
+            title: '🏥 EMERGENCY DEPT: ${activeDisaster.emergencyDeptName}',
+            snippet: 'Origin point for first responder dispatch.',
+          ),
+          icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueCyan),
+        ),
+      );
+
+      // 4. Blocked warning icon marker
       _markers.add(
         Marker(
           markerId: const MarkerId('blocked_warning'),
@@ -80,7 +103,7 @@ class _MapScreenState extends ConsumerState<MapScreen> {
         ),
       );
 
-      // 4. Plot Alternative routes
+      // 5. Plot Alternative routes
       for (final route in activeDisaster.alternativeRoutes) {
         final isSelected = selectedRouteId == route.id;
         final routeColor = route.id == 'alt_a'
@@ -182,13 +205,41 @@ class _MapScreenState extends ConsumerState<MapScreen> {
 
   void _onMapCreated(GoogleMapController controller) {
     _mapController = controller;
+    final activeId = ref.read(activeDisasterIdProvider);
+    final disasters = ref.read(confirmedDisastersProvider);
+    if (activeId != null) {
+      final activeDisaster = disasters.firstWhere(
+        (d) => d.id == activeId,
+        orElse: () => generateMockDisaster(
+          id: 'g10_flood',
+          title: 'G-10 Flash Flood',
+          type: 'Urban Flooding',
+          location: 'G-10 Markaz, Islamabad',
+          lat: 33.6938,
+          lng: 72.9910,
+          confidence: 94.2,
+          severity: 4,
+          status: 'Sentinel Triaged',
+        ),
+      );
+      _fitBounds(activeDisaster.emergencyDeptLatLng, activeDisaster.latLng);
+    }
   }
 
-  void _moveCamera(LatLng target) {
+  void _fitBounds(LatLng p1, LatLng p2) {
+    if (_mapController == null) return;
+    final double southLat = p1.latitude < p2.latitude ? p1.latitude : p2.latitude;
+    final double northLat = p1.latitude > p2.latitude ? p1.latitude : p2.latitude;
+    final double westLng = p1.longitude < p2.longitude ? p1.longitude : p2.longitude;
+    final double eastLng = p1.longitude > p2.longitude ? p1.longitude : p2.longitude;
+
+    final bounds = LatLngBounds(
+      southwest: LatLng(southLat, westLng),
+      northeast: LatLng(northLat, eastLng),
+    );
+
     _mapController?.animateCamera(
-      CameraUpdate.newCameraPosition(
-        CameraPosition(target: target, zoom: 14.5),
-      ),
+      CameraUpdate.newLatLngBounds(bounds, 80.0), // Padding of 80.0
     );
   }
 

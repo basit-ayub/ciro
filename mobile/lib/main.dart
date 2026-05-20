@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:firebase_core/firebase_core.dart';
 
 // CIRO Core Screens
 import 'package:ciro_mobile/screens/splash_screen.dart';
@@ -8,8 +9,13 @@ import 'package:ciro_mobile/screens/splash_screen.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   
-  // Note: Team needs to run `flutter pub run flutter_dotenv:generate` and 
-  // configure Firebase properly using `flutterfire configure`
+  try {
+    await Firebase.initializeApp();
+    debugPrint("Firebase successfully initialized on mobile client!");
+  } catch (e) {
+    debugPrint("Firebase initialization skipped (Running in Offline/Local Demo Mode): $e");
+    debugPrint("To connect to a live database, run 'flutterfire configure' in your terminal.");
+  }
   
   runApp(
     const ProviderScope(

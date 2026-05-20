@@ -351,6 +351,10 @@ const List<EmergencyDepartment> emergencyDepartments = [
   EmergencyDepartment(name: 'Allied Hospital Faisalabad', latLng: LatLng(31.4280, 73.0680), city: 'Faisalabad'),
   // Gujranwala
   EmergencyDepartment(name: 'DHQ Hospital Gujranwala', latLng: LatLng(32.1610, 74.1850), city: 'Gujranwala'),
+  // Hunza
+  EmergencyDepartment(name: 'Aga Khan Health Centre (Aliabad, Hunza)', latLng: LatLng(36.3119, 74.6150), city: 'Hunza'),
+  // Bahawalpur
+  EmergencyDepartment(name: 'Bahawal Victoria Hospital', latLng: LatLng(29.3894, 71.6808), city: 'Bahawalpur'),
 ];
 
 EmergencyDepartment findNearestEmergencyDepartment(LatLng disasterLatLng) {

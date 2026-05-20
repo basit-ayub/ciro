@@ -22,9 +22,9 @@
     "timestamp": "2026-05-17T14:31:00Z",
     "location": {
       "lat": 24.8607, 
-      "lon": 67.0011, 
+      "lon": 67.0244, 
       "area_name": "Saddar, Karachi",
-      "area_polygon": [[24.862, 67.000], [24.862, 67.003], [24.859, 67.003], [24.859, 67.000]]
+      "area_polygon": [[24.862, 67.023], [24.862, 67.026], [24.859, 67.026], [24.859, 67.023]]
     },
     "signal_ids": ["sig-016", "sig-025", "sig-030", "sig-036"],
     "event_triggers": ["grid_failure", "hospital_overload"]
@@ -36,10 +36,10 @@
     "primary": false,
     "timestamp": "2026-05-17T14:31:30Z",
     "location": {
-      "lat": 31.6340, 
-      "lon": 74.2623, 
+      "lat": 31.7500, 
+      "lon": 74.2800, 
       "area_name": "Lahore-Sialkot Motorway M-11 km 47",
-      "area_polygon": [[31.635, 74.261], [31.635, 74.264], [31.633, 74.264], [31.633, 74.261]]
+      "area_polygon": [[31.752, 74.278], [31.752, 74.282], [31.748, 74.282], [31.748, 74.278]]
     },
     "signal_ids": ["sig-010", "sig-017", "sig-042", "sig-045"],
     "event_triggers": ["road_closure", "mass_casualty"]

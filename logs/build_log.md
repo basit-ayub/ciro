@@ -541,3 +541,36 @@ After re-running `pip install`, the dependencies resolved successfully. I then r
    - Ran `flutter analyze` confirming zero compile-level errors.
 
 **Result**: 🎉 🎉 🎉 Islamabad routing endpoints are now 100% geographically accurate! The dispatch route starts directly at PIMS Hospital on the main Ibn-e-Sina Road, and the crisis zone terminates precisely in the center of G-10 Markaz, with all supporting mock signals and scenarios snapping perfectly to their real-world sector coordinates!
+
+---
+
+## Session 022 — Dynamic Pakistan-Wide Road Routing & G-10 Markaz Destination Calibration
+
+### [15:20:00] Mathematical Proximity Matching, Dynamic Perpendicular Detour Generation, snaps to road, and Physical Device Hot Reload
+
+**Thought**: The user requested that we calibrate the G-10 Markaz destination coordinates to exactly `(33.67494, 73.01734)` and implement the dynamic routing strategy across all of Pakistan. This removes any hardcoded coordinate paths and fallback routes. Additionally, we verified all changes by successfully compiling, executing a Hot Reload and clean Hot Restart on the physical Vivo V40 device, and pushed all committed code to GitHub.
+
+**Actions Taken**:
+1. **Calibrated G-10 Markaz Coordinates**:
+   - Updated G-10 Markaz coordinates to `33.67494, 73.01734` inside `confirmed_disasters_provider.dart`.
+   - Updated default maps focus coordinates and initial camera centers inside `mobile/lib/screens/map_screen.dart` to G-10 Markaz.
+   - Calibrated the simulated incident trigger in `mobile/lib/widgets/live_reasoning_stadium.dart` to match `33.67494, 73.01734` exactly.
+2. **Dynamic Pakistan-Wide Emergency Registry**:
+   - Implemented an `EmergencyDepartment` registry mapping major medical facilities across Pakistan (Islamabad PIMS, Lahore Mayo Hospital, Karachi South City, Karachi Civil Hospital, Peshawar KTH, Quetta CHQ, Rawalpindi Benazir Bhutto Hospital).
+3. **Nearest Hospital Mathematical Proximity Lookup**:
+   - Developed `findNearestEmergencyDepartment(LatLng incidentPoint)` in the state notifier. When a disaster is registered, the provider dynamically performs a Euclidean distance match to pair the crisis with the nearest registered hospital.
+4. **Dynamic Waypoint Vector Midpoint Generator**:
+   - Removed all hardcoded detour coordinates.
+   - Built a vector-based offset midpoint generator. Calculates the primary path vector from hospital to crisis, rotates it by 90 degrees (using `[-dy, dx]` for Route Alpha and `[dy, -dx]` for Route Beta), applies a 0.25 scale distance offset to the midpoint, and passes these dynamic coordinates as waypoints directly to the OSRM street snapping API.
+5. **Client and Backend Coordinate Alignment**:
+   - Calibrated schema coordinates in `backend/models/signal.py` to `33.67494, 73.01734`.
+   - Updated primary scenario parameters and bounding polygons in `mock-data/scenarios.json`.
+   - Translated the mock social feed dataset `mock-data/social_feed.json` coordinates to the updated G-10 grid.
+6. **Physical Handset Verification & Hot Restart**:
+   - Deployed, compiled, and successfully launched the application on the connected physical Vivo V40 (`V2348`) handset.
+   - Transmitted **Hot Reload** (`r`) and clean **Hot Restart** (`R`) signals to the device. The application reloaded beautifully, snapped polylines to roads dynamically, and center-focused the map on Ibn-e-Sina Road/G-10 Markaz.
+7. **Git Remote Syncing**:
+   - Committed and pushed all updated code files to the remote `master` branch on GitHub securely.
+
+**Result**: 🎉 🎉 🎉 CIRO's emergency response is now fully dynamic across all of Pakistan! Crises are mathematically matched to the closest rescue units, detours are mathematically plotted through perpendicular vector midpoints, routes snap perfectly to actual road shapes via live OSRM, and all updates are committed, pushed, and running smoothly on the physical Vivo V40!
+

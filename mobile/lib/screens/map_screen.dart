@@ -17,7 +17,7 @@ class _MapScreenState extends ConsumerState<MapScreen> {
 
   // Initial map center
   static const CameraPosition _initialPosition = CameraPosition(
-    target: LatLng(33.6912, 73.0118), // G-10 Markaz, Islamabad
+    target: LatLng(33.67494, 73.01734), // G-10 Markaz, Islamabad
     zoom: 14.2,
   );
 
@@ -49,8 +49,8 @@ class _MapScreenState extends ConsumerState<MapScreen> {
           title: 'G-10 Flash Flood',
           type: 'Urban Flooding',
           location: 'G-10 Markaz, Islamabad',
-          lat: 33.6912,
-          lng: 73.0118,
+          lat: 33.67494,
+          lng: 73.01734,
           confidence: 94.2,
           severity: 4,
           status: 'Sentinel Triaged',
@@ -144,7 +144,7 @@ class _MapScreenState extends ConsumerState<MapScreen> {
       _markers.add(
         const Marker(
           markerId: MarkerId('default_center'),
-          position: LatLng(33.6912, 73.0118),
+          position: LatLng(33.67494, 73.01734),
           infoWindow: InfoWindow(
             title: 'CIRO MONITORING STATION',
             snippet: 'Islamabad HQ Hub - All quiet.',
@@ -216,8 +216,8 @@ class _MapScreenState extends ConsumerState<MapScreen> {
           title: 'G-10 Flash Flood',
           type: 'Urban Flooding',
           location: 'G-10 Markaz, Islamabad',
-          lat: 33.6912,
-          lng: 73.0118,
+          lat: 33.67494,
+          lng: 73.01734,
           confidence: 94.2,
           severity: 4,
           status: 'Sentinel Triaged',
@@ -251,8 +251,8 @@ class _MapScreenState extends ConsumerState<MapScreen> {
       title: 'Manual Flood Report',
       type: 'Urban Flooding',
       location: 'Sector G-10, Islamabad',
-      lat: 33.6912,
-      lng: 73.0118,
+      lat: 33.67494,
+      lng: 73.01734,
       confidence: 99.1,
       severity: 5,
       status: 'Commander Verified',

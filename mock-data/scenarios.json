@@ -6,10 +6,10 @@
     "primary": true,
     "timestamp": "2026-05-17T14:30:00Z",
     "location": {
-      "lat": 33.6912, 
-      "lon": 73.0118, 
+      "lat": 33.67494, 
+      "lon": 73.01734, 
       "area_name": "G-10 Markaz, Islamabad",
-      "area_polygon": [[33.693, 73.010], [33.693, 73.013], [33.689, 73.013], [33.689, 73.010]]
+      "area_polygon": [[33.676, 73.015], [33.676, 73.019], [33.673, 73.019], [33.673, 73.015]]
     },
     "signal_ids": ["sig-001", "sig-002", "sig-005", "sig-006", "sig-015", "sig-020", "sig-022", "sig-046", "sig-050"],
     "event_triggers": ["water_level_rise", "power_outage"]

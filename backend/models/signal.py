@@ -49,7 +49,7 @@ class Signal(BaseModel):
             "source": "social",
             "text": "G-10 Markaz mein paani bhar gaya hai, gaariyan phans gayi hain bhai",
             "timestamp": "2026-05-17T14:32:09Z",
-            "geo": {"lat": 33.6912, "lon": 73.0118, "area_name": "G-10 Markaz, Islamabad"},
+            "geo": {"lat": 33.67494, "lon": 73.01734, "area_name": "G-10 Markaz, Islamabad"},
             "language": "ur-Latn-PK",
         }
     ]}}

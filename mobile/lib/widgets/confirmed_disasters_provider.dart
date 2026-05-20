@@ -97,8 +97,8 @@ class ConfirmedDisastersNotifier extends StateNotifier<List<ConfirmedDisaster>> 
       title: 'G-10 Flash Flood',
       type: 'Urban Flooding',
       location: 'G-10 Markaz, Islamabad',
-      lat: 33.6912,
-      lng: 73.0118,
+      lat: 33.67494,
+      lng: 73.01734,
       confidence: 94.2,
       severity: 4,
       status: 'Sentinel Triaged',
@@ -261,8 +261,8 @@ class ConfirmedDisastersNotifier extends StateNotifier<List<ConfirmedDisaster>> 
             final title = data['incident_type'] ?? 'Urban Flooding';
             final type = data['incident_type'] ?? 'Emergency';
             final geo = data['geo'] as Map<dynamic, dynamic>? ?? {};
-            final lat = geo['lat']?.toDouble() ?? 33.6912;
-            final lng = geo['lon']?.toDouble() ?? 73.0118;
+            final lat = geo['lat']?.toDouble() ?? 33.67494;
+            final lng = geo['lon']?.toDouble() ?? 73.01734;
             final confidence = ((data['confidence'] ?? 0.8) as num).toDouble() * 100.0;
             final severity = (data['severity'] ?? 4) as int;
             final status = data['status'] ?? 'assessed';
@@ -311,6 +311,64 @@ final activeDisasterIdProvider = StateProvider<String?>((ref) => null);
 final selectedRouteIdProvider = StateProvider<String>((ref) => 'alt_a');
 
 // Seed/mock disaster helper with highly realistic road-following coordinates
+class EmergencyDepartment {
+  final String name;
+  final LatLng latLng;
+  final String city;
+
+  const EmergencyDepartment({
+    required this.name,
+    required this.latLng,
+    required this.city,
+  });
+}
+
+const List<EmergencyDepartment> emergencyDepartments = [
+  // Islamabad
+  EmergencyDepartment(name: 'PIMS Hospital (Ibn-e-Sina Rd)', latLng: LatLng(33.7047, 73.0564), city: 'Islamabad'),
+  EmergencyDepartment(name: 'Shifa International Hospital', latLng: LatLng(33.6811, 73.0906), city: 'Islamabad'),
+  EmergencyDepartment(name: 'CDA Fire Headquarters (G-7)', latLng: LatLng(33.7077, 73.0785), city: 'Islamabad'),
+  // Rawalpindi
+  EmergencyDepartment(name: 'Holy Family Hospital', latLng: LatLng(33.6300, 73.0700), city: 'Rawalpindi'),
+  EmergencyDepartment(name: 'Benazir Bhutto Hospital', latLng: LatLng(33.6150, 73.0780), city: 'Rawalpindi'),
+  // Karachi
+  EmergencyDepartment(name: 'South City Hospital (Clifton)', latLng: LatLng(24.8190, 67.0380), city: 'Karachi'),
+  EmergencyDepartment(name: 'Jinnah Postgraduate Medical Centre (JPMC)', latLng: LatLng(24.8519, 67.0425), city: 'Karachi'),
+  EmergencyDepartment(name: 'Aga Khan University Hospital', latLng: LatLng(24.8922, 67.0747), city: 'Karachi'),
+  EmergencyDepartment(name: 'Civil Hospital Karachi', latLng: LatLng(24.8596, 67.0101), city: 'Karachi'),
+  // Lahore
+  EmergencyDepartment(name: 'Mayo Hospital Lahore', latLng: LatLng(31.5725, 74.3125), city: 'Lahore'),
+  EmergencyDepartment(name: 'Jinnah Hospital Lahore', latLng: LatLng(31.4820, 74.3030), city: 'Lahore'),
+  EmergencyDepartment(name: 'Services Hospital Lahore', latLng: LatLng(31.5430, 74.3370), city: 'Lahore'),
+  // Peshawar
+  EmergencyDepartment(name: 'Lady Reading Hospital', latLng: LatLng(34.0150, 71.5750), city: 'Peshawar'),
+  EmergencyDepartment(name: 'Khyber Teaching Hospital', latLng: LatLng(33.9980, 71.4870), city: 'Peshawar'),
+  // Quetta
+  EmergencyDepartment(name: 'Sandeman Provincial Hospital', latLng: LatLng(30.1980, 66.9980), city: 'Quetta'),
+  // Multan
+  EmergencyDepartment(name: 'Nishtar Hospital Multan', latLng: LatLng(30.1990, 71.4420), city: 'Multan'),
+  // Faisalabad
+  EmergencyDepartment(name: 'Allied Hospital Faisalabad', latLng: LatLng(31.4280, 73.0680), city: 'Faisalabad'),
+  // Gujranwala
+  EmergencyDepartment(name: 'DHQ Hospital Gujranwala', latLng: LatLng(32.1610, 74.1850), city: 'Gujranwala'),
+];
+
+EmergencyDepartment findNearestEmergencyDepartment(LatLng disasterLatLng) {
+  double minDistance = double.infinity;
+  EmergencyDepartment nearest = emergencyDepartments.first;
+
+  for (var dept in emergencyDepartments) {
+    final double latDiff = dept.latLng.latitude - disasterLatLng.latitude;
+    final double lngDiff = dept.latLng.longitude - disasterLatLng.longitude;
+    final double distSq = latDiff * latDiff + lngDiff * lngDiff;
+    if (distSq < minDistance) {
+      minDistance = distSq;
+      nearest = dept;
+    }
+  }
+  return nearest;
+}
+
 ConfirmedDisaster generateMockDisaster({
   required String id,
   required String title,
@@ -322,105 +380,74 @@ ConfirmedDisaster generateMockDisaster({
   required int severity,
   required String status,
 }) {
-  final isIslamabad = (lat - 33.69).abs() < 0.1;
+  final LatLng disasterLatLng = LatLng(lat, lng);
+  final nearestDept = findNearestEmergencyDepartment(disasterLatLng);
+  final start = nearestDept.latLng;
+  final end = disasterLatLng;
 
-  if (isIslamabad) {
-    // Islamabad Grid (G-8/G-9/G-10) - PIMS Hospital to G-10 Markaz Emergency Routing
-    return ConfirmedDisaster(
-      id: id,
-      title: title,
-      type: type,
-      location: location,
-      latLng: LatLng(lat, lng),
-      confidenceScore: confidence,
-      severity: severity,
-      status: status,
-      timestamp: DateTime.now(),
-      emergencyDeptName: 'PIMS Hospital (G-8/3 Emergency)',
-      emergencyDeptLatLng: const LatLng(33.7047, 73.0564),
-      blockedRouteDescription: 'Srinagar Highway exit to G-10 Service Road East completely flooded',
-      blockedPoints: const [
-        LatLng(33.6820, 73.0080),
-        LatLng(33.6860, 73.0090),
-      ],
-      alternativeRoutes: [
-        AlternativeRoute(
-          id: 'alt_a',
-          name: 'Route Alpha (Ibn-e-Sina Bypass)',
-          duration: '11 mins',
-          delayAverted: '15 mins delay averted',
-          points: const [
-            LatLng(33.7047, 73.0564), // PIMS Emergency
-            LatLng(33.7025, 73.0400), // Ibn-e-Sina Road G-8/F-8 intersection
-            LatLng(33.7005, 73.0200), // Ibn-e-Sina Road G-9/F-9 intersection
-            LatLng(33.6985, 73.0110), // Ibn-e-Sina Road Sector G-10 entrance
-            LatLng(33.6950, 73.0115), // G-10 Service Road North
-            LatLng(33.6912, 73.0118), // G-10 Markaz (Crisis Hub)
-          ],
-        ),
-        AlternativeRoute(
-          id: 'alt_b',
-          name: 'Route Beta (Kashmir Hwy Detour)',
-          duration: '16 mins',
-          delayAverted: '10 mins delay averted',
-          points: const [
-            LatLng(33.7047, 73.0564), // PIMS Emergency
-            LatLng(33.6890, 73.0480), // Srinagar Highway G-8
-            LatLng(33.6850, 73.0250), // Srinagar Highway G-9
-            LatLng(33.6820, 73.0080), // Srinagar Highway G-10 exit (Bypass Start)
-            LatLng(33.6870, 73.0090), // Detour via Sumbal Road East gate
-            LatLng(33.6912, 73.0118), // G-10 Markaz (Crisis Hub)
-          ],
-        ),
-      ],
-    );
-  } else {
-    // Karachi Grid (Clifton) - South City Hospital to Clifton Block 5 Emergency Routing
-    return ConfirmedDisaster(
-      id: id,
-      title: title,
-      type: type,
-      location: location,
-      latLng: LatLng(lat, lng),
-      confidenceScore: confidence,
-      severity: severity,
-      status: status,
-      timestamp: DateTime.now(),
-      emergencyDeptName: 'South City Hospital (Clifton)',
-      emergencyDeptLatLng: const LatLng(24.8190, 67.0380),
-      blockedRouteDescription: 'Khayaban-e-Jami near Clifton Bridge is blocked',
-      blockedPoints: const [
-        LatLng(24.8220, 67.0340),
-        LatLng(24.8250, 67.0330),
-      ],
-      alternativeRoutes: [
-        AlternativeRoute(
-          id: 'alt_a',
-          name: 'Route Alpha (Marine Promenade)',
-          duration: '9 mins',
-          delayAverted: '12 mins delay averted',
-          points: const [
-            LatLng(24.8190, 67.0380), // South City Hospital
-            LatLng(24.8170, 67.0330), // Marine Promenade East
-            LatLng(24.8200, 67.0280), // Marine Promenade West
-            LatLng(24.8238, 67.0310), // Clifton Block 5 (Crisis Hub)
-          ],
-        ),
-        AlternativeRoute(
-          id: 'alt_b',
-          name: 'Route Beta (Khayaban-e-Saadi Bypass)',
-          duration: '14 mins',
-          delayAverted: '7 mins delay averted',
-          points: const [
-            LatLng(24.8190, 67.0380), // South City Hospital
-            LatLng(24.8260, 67.0420), // Khayaban-e-Saadi East
-            LatLng(24.8310, 67.0360), // Sunset Boulevard
-            LatLng(24.8280, 67.0290), // Clifton Block 4
-            LatLng(24.8238, 67.0310), // Clifton Block 5 (Crisis Hub)
-          ],
-        ),
-      ],
-    );
-  }
+  // Compute dynamic detour waypoints for Alpha & Beta routes
+  final midLat = (start.latitude + end.latitude) / 2;
+  final midLng = (start.longitude + end.longitude) / 2;
+  
+  final latDiff = end.latitude - start.latitude;
+  final lngDiff = end.longitude - start.longitude;
+
+  // Perpendicular offsets for detour guidance
+  final alphaMid = LatLng(
+    midLat - lngDiff * 0.25,
+    midLng + latDiff * 0.25,
+  );
+  final betaMid = LatLng(
+    midLat + lngDiff * 0.25,
+    midLng - latDiff * 0.25,
+  );
+
+  // Dynamic blocked route segment near the disaster zone
+  final blockedStart = LatLng(
+    end.latitude - latDiff * 0.15,
+    end.longitude - lngDiff * 0.15,
+  );
+  final blockedEnd = LatLng(
+    end.latitude - latDiff * 0.05,
+    end.longitude - lngDiff * 0.05,
+  );
+
+  // Evacuation action time estimates based on distance
+  final distanceSq = latDiff * latDiff + lngDiff * lngDiff;
+  final double distanceEstKm = 111.0 * distanceSq * 100; // raw visual scaler
+  final durationMinutes = (10 + (distanceEstKm * 1.5)).clamp(5.0, 45.0).toInt();
+  final delayAvertedMinutes = (durationMinutes * 1.5).clamp(5.0, 60.0).toInt();
+
+  return ConfirmedDisaster(
+    id: id,
+    title: title,
+    type: type,
+    location: location.isNotEmpty ? location : '${nearestDept.city} Crisis Hub',
+    latLng: disasterLatLng,
+    confidenceScore: confidence,
+    severity: severity,
+    status: status,
+    timestamp: DateTime.now(),
+    emergencyDeptName: nearestDept.name,
+    emergencyDeptLatLng: nearestDept.latLng,
+    blockedRouteDescription: 'Main access exit near the crisis hub is blocked due to active $type.',
+    blockedPoints: [blockedStart, blockedEnd],
+    alternativeRoutes: [
+      AlternativeRoute(
+        id: 'alt_a',
+        name: 'Route Alpha (Primary Evacuation Corridor)',
+        duration: '$durationMinutes mins',
+        delayAverted: '$delayAvertedMinutes mins delay averted',
+        points: [start, alphaMid, end],
+      ),
+      AlternativeRoute(
+        id: 'alt_b',
+        name: 'Route Beta (Secondary Tactical Detour)',
+        duration: '${(durationMinutes * 1.3).toInt()} mins',
+        delayAverted: '${(delayAvertedMinutes * 0.7).toInt()} mins delay averted',
+        points: [start, betaMid, end],
+      ),
+    ],
+  );
 }
 

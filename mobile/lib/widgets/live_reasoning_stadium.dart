@@ -66,11 +66,11 @@ class _LiveReasoningStadiumState extends ConsumerState<LiveReasoningStadium> {
           if (tick >= 6) {
             final secondDisaster = generateMockDisaster(
               id: 'khi_heatwave',
-              title: 'Karachi Heatwave emergency',
-              type: 'Heatwave Crisis',
-              location: 'Clifton, Karachi',
-              lat: 24.8607,
-              lng: 67.0011,
+               title: 'Karachi Heatwave emergency',
+               type: 'Heatwave Crisis',
+               location: 'Clifton, Karachi',
+               lat: 24.8238,
+               lng: 67.0310,
               confidence: 97.8,
               severity: 5,
               status: 'Active Monitoring',

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:dio/dio.dart';
 
 class AlternativeRoute {
   final String id;
@@ -90,17 +91,57 @@ class ConfirmedDisaster {
 
 class ConfirmedDisastersNotifier extends StateNotifier<List<ConfirmedDisaster>> {
   ConfirmedDisastersNotifier() : super([]) {
+    // Seed initial high-contrast mock disaster so the map immediately shows active, road-aligned intelligence
+    final defaultG10 = generateMockDisaster(
+      id: 'g10_flood',
+      title: 'G-10 Flash Flood',
+      type: 'Urban Flooding',
+      location: 'G-10 Markaz, Islamabad',
+      lat: 33.6938,
+      lng: 72.9910,
+      confidence: 94.2,
+      severity: 4,
+      status: 'Sentinel Triaged',
+    );
+    state = [defaultG10];
+    fetchRealRoadRoutes(defaultG10.id);
+
     // Attempt to listen to Firestore on creation (will fail gracefully if Firebase is unconfigured)
     listenToFirestore();
   }
 
   StreamSubscription? _firestoreSub;
+  final Dio _dio = Dio();
 
   void addDisaster(ConfirmedDisaster disaster) {
-    if (state.any((d) => d.id == disaster.id)) {
-      state = state.map((d) => d.id == disaster.id ? disaster : d).toList();
+    final exists = state.any((d) => d.id == disaster.id);
+    if (exists) {
+      // Check if the existing one already has road-following points
+      final existing = state.firstWhere((d) => d.id == disaster.id);
+      final hasRoadPoints = existing.alternativeRoutes.isNotEmpty &&
+          existing.alternativeRoutes.first.points.length > 15;
+      
+      if (hasRoadPoints && disaster.alternativeRoutes.isNotEmpty && disaster.alternativeRoutes.first.points.length <= 10) {
+        // Keep the existing high-fidelity road points and only update other fields!
+        state = state.map((d) {
+          if (d.id == disaster.id) {
+            return disaster.copyWith(
+              alternativeRoutes: existing.alternativeRoutes,
+              blockedPoints: existing.blockedPoints,
+              status: disaster.status,
+              confidenceScore: disaster.confidenceScore,
+              severity: disaster.severity,
+              location: disaster.location,
+            );
+          }
+          return d;
+        }).toList();
+      } else {
+        state = state.map((d) => d.id == disaster.id ? disaster : d).toList();
+      }
     } else {
       state = [disaster, ...state];
+      fetchRealRoadRoutes(disaster.id);
     }
   }
 
@@ -111,6 +152,97 @@ class ConfirmedDisastersNotifier extends StateNotifier<List<ConfirmedDisaster>> 
       }
       return d;
     }).toList();
+  }
+
+  Future<void> fetchRealRoadRoutes(String disasterId) async {
+    final disasterIndex = state.indexWhere((d) => d.id == disasterId);
+    if (disasterIndex == -1) return;
+    
+    final disaster = state[disasterIndex];
+    List<AlternativeRoute> updatedRoutes = [];
+    
+    for (var route in disaster.alternativeRoutes) {
+      try {
+        final start = disaster.emergencyDeptLatLng;
+        final end = disaster.latLng;
+        
+        // Guide OSRM using a middle waypoint to force Route Alpha and Route Beta detours
+        LatLng midWaypoint;
+        if (route.points.length > 2) {
+          midWaypoint = route.points[route.points.length ~/ 2];
+        } else {
+          midWaypoint = LatLng(
+            (start.latitude + end.latitude) / 2,
+            (start.longitude + end.longitude) / 2,
+          );
+        }
+        
+        final coords = '${start.longitude},${start.latitude};${midWaypoint.longitude},${midWaypoint.latitude};${end.longitude},${end.latitude}';
+        final url = 'https://router.project-osrm.org/route/v1/driving/$coords?overview=full&geometries=geojson';
+        
+        final response = await _dio.get(url);
+        if (response.statusCode == 200 && response.data['code'] == 'Ok') {
+          final routesData = response.data['routes'] as List;
+          if (routesData.isNotEmpty) {
+            final geom = routesData[0]['geometry'];
+            final coordsList = geom['coordinates'] as List;
+            final List<LatLng> roadPoints = coordsList.map((c) {
+              return LatLng(c[1].toDouble(), c[0].toDouble());
+            }).toList();
+            
+            updatedRoutes.add(AlternativeRoute(
+              id: route.id,
+              name: route.name,
+              duration: route.duration,
+              delayAverted: route.delayAverted,
+              points: roadPoints,
+            ));
+            continue;
+          }
+        }
+      } catch (e) {
+        // Fall back gracefully to mock points
+      }
+      
+      // Fallback
+      updatedRoutes.add(route);
+    }
+    
+    // Fetch road points for the blocked route too if possible!
+    List<LatLng> updatedBlockedPoints = disaster.blockedPoints;
+    try {
+      if (disaster.blockedPoints.length >= 2) {
+        final start = disaster.blockedPoints.first;
+        final end = disaster.blockedPoints.last;
+        final coords = '${start.longitude},${start.latitude};${end.longitude},${end.latitude}';
+        final url = 'https://router.project-osrm.org/route/v1/driving/$coords?overview=full&geometries=geojson';
+        final response = await _dio.get(url);
+        if (response.statusCode == 200 && response.data['code'] == 'Ok') {
+          final routesData = response.data['routes'] as List;
+          if (routesData.isNotEmpty) {
+            final geom = routesData[0]['geometry'];
+            final coordsList = geom['coordinates'] as List;
+            updatedBlockedPoints = coordsList.map((c) {
+              return LatLng(c[1].toDouble(), c[0].toDouble());
+            }).toList();
+          }
+        }
+      }
+    } catch (e) {
+      // ignore
+    }
+    
+    if (mounted) {
+      state = state.map((d) {
+        if (d.id == disasterId) {
+          return d.copyWith(
+            alternativeRoutes: updatedRoutes,
+            blockedPoints: updatedBlockedPoints,
+          );
+        }
+        return d;
+      }).toList();
+    }
   }
 
   void listenToFirestore() {

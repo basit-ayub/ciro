@@ -488,6 +488,36 @@ After re-running `pip install`, the dependencies resolved successfully. I then r
 
 **Result**: 🎉 🎉 🎉 The polylines are now beautifully snapping to every twist, turn, and intersection along the physical roads of Islamabad and Karachi! No more cutting through houses or buildings!
 
+---
+
+## Session 020 — Tactical Control Drawer Upgrade & Threat Spread Analysis
+
+### [14:50:00] Overhauling Console Drawer, Crafting Glowing Pickup/Drop-off Cards, and Customizing SOPs & Spread Matrices
+
+**Thought**: The user requested that we better clarify what the destination and pickup/source are, display highly specific route action messages (e.g. "Use this route to evacuate people" or "Use this route to deliver relief packages to affected civilians"), list specific tactical SOPs for each disaster type, and model high-alert spread risks for adjacent sectors (G-9, G-11, F-10, H-10 in Islamabad, and Clifton Blocks 4/9, Khayaban-e-Saadi, and Boat Basin in Karachi) tailored to the disaster type.
+
+**Actions Taken**:
+1. **Clarified Pickup/Source & Destination/Drop**:
+   - Redesigned the "Source and Destination" container inside `mobile/lib/screens/map_screen.dart` into a premium unified deck.
+   - Introduced a prominent, glowing cyan `PICKUP / SOURCE` chip pointing to the origin hospital hub (`disaster.emergencyDeptName`).
+   - Introduced a glowing red `DROP / DESTINATION` chip pointing to the target crisis zone (`disaster.title`).
+   - Connected both cards using a sleek, vertical color-gradient line (from Cyan to Red) representing the tactical travel pathway.
+2. **Added Dynamic, Mission-Critical Route Directives**:
+   - Tailored the action directive text box inside the map selector to display highly context-aware tactical orders depending on both the disaster type and selected alternative route.
+   - **Flooding**: Route Alpha directs the commander to *"Use this route to deliver relief packages to affected civilians"* (neon green line), and Route Beta directs to *"Use this route to evacuate stranded citizens"* (neon cyan line).
+   - **Heatwave**: Route Alpha directs to *"dispatch cooling payloads and EMS medics"*, and Route Beta directs to *"transport hyperthermia victims to cooling centers"*.
+   - **Others**: Standardizes to dispatching primary responders vs evacuating people.
+3. **Tailored Disaster-Specific SOP Checklist**:
+   - Mapped structured Standing Orders (SOP-01 through SOP-04) inside `_buildSOPsTab` directly to the active incident type (Flooding vs Heatwave vs others) to give commanders actionable field tasks.
+4. **Tailored Regional Threat Spread Analysis**:
+   - Upgraded `_buildSpreadRisksTab` to cross-reference location (Islamabad G-10 vs Karachi Clifton) with the active disaster type.
+   - Now displays localized, threat-specific spread cards for neighboring sectors (e.g. Sector G-9, G-11, F-10, H-10 for Islamabad, and Clifton Blocks 4, 9, Khayaban-e-Saadi, Boat Basin for Karachi) detailing specific threats (e.g. flood runoff backlogs or urban heat-trapping in high-rises) and high-alert warnings.
+5. **Hot Reload & Validation**:
+   - Triggered hot reload on the physical Vivo V40 device (`10FEA807RY0003C`) successfully.
+   - Ran `flutter analyze` confirming zero compile-level errors.
+
+**Result**: 🎉 🎉 The tactical drawer has been upgraded to a premium first-responder operations dashboard! All routing endpoints are crystal clear, mission directives align with disaster contexts, and command checklists and neighboring risk alerts adapt dynamically to the crisis at hand!
+
 
 
 

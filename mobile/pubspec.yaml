@@ -22,7 +22,7 @@ dependencies:
   
   # UI & Animations
   lottie: ^3.0.0
-  google_fonts: ^6.1.0
+  google_fonts: any
   
   # Utilities
   uuid: ^4.3.3

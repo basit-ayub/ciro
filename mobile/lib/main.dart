@@ -38,7 +38,7 @@ class CIROApp extends StatelessWidget {
         textTheme: GoogleFonts.interTextTheme(
           ThemeData(brightness: Brightness.dark).textTheme,
         ),
-        cardTheme: CardTheme(
+        cardTheme: CardThemeData(
           color: const Color(0xFF1E1E1E),
           elevation: 8,
           shape: RoundedRectangleBorder(

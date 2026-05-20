@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
-import '../widgets/live_reasoning_stadium.dart';
+import 'package:ciro_mobile/widgets/confirmed_disasters_provider.dart';
 
 class MapScreen extends ConsumerStatefulWidget {
   const MapScreen({super.key});
@@ -14,138 +13,211 @@ class MapScreen extends ConsumerStatefulWidget {
 class _MapScreenState extends ConsumerState<MapScreen> {
   GoogleMapController? _mapController;
 
-  // Center of Pakistan (roughly Islamabad for demo)
+  // Initial map center
   static const CameraPosition _initialPosition = CameraPosition(
-    target: LatLng(33.6938, 72.9910), // G-10 Markaz
-    zoom: 13.0,
+    target: LatLng(33.6938, 72.9910), // G-10 Markaz, Islamabad
+    zoom: 14.2,
   );
 
   final Set<Marker> _markers = {};
   final Set<Polyline> _polylines = {};
   final Set<Polygon> _polygons = {};
 
-  void _triggerHellMode() {
-    setState(() {
-      // 5 colored zones for Hell Mode
-      _polygons.addAll([
-        Polygon(
-          polygonId: const PolygonId('g10_flood'),
-          points: const [LatLng(33.695, 72.990), LatLng(33.695, 72.993), LatLng(33.691, 72.993), LatLng(33.691, 72.990)],
-          fillColor: Colors.blue.withOpacity(0.4),
-          strokeColor: Colors.blueAccent,
-          strokeWidth: 2,
-        ),
-        Polygon(
-          polygonId: const PolygonId('khi_heatwave'),
-          points: const [LatLng(24.862, 67.000), LatLng(24.862, 67.003), LatLng(24.859, 67.003), LatLng(24.859, 67.000)],
-          fillColor: Colors.orange.withOpacity(0.4),
-          strokeColor: Colors.orangeAccent,
-          strokeWidth: 2,
-        ),
-        Polygon(
-          polygonId: const PolygonId('m11_accident'),
-          points: const [LatLng(31.635, 74.261), LatLng(31.635, 74.264), LatLng(31.633, 74.264), LatLng(31.633, 74.261)],
-          fillColor: Colors.red.withOpacity(0.4),
-          strokeColor: Colors.redAccent,
-          strokeWidth: 2,
-        ),
-        Polygon(
-          polygonId: const PolygonId('pindi_fire'),
-          points: const [LatLng(33.598, 73.047), LatLng(33.598, 73.049), LatLng(33.596, 73.049), LatLng(33.596, 73.047)],
-          fillColor: Colors.deepOrange.withOpacity(0.4),
-          strokeColor: Colors.deepOrangeAccent,
-          strokeWidth: 2,
-        ),
-        Polygon(
-          polygonId: const PolygonId('kkh_landslide'),
-          points: const [LatLng(36.318, 74.649), LatLng(36.318, 74.652), LatLng(36.315, 74.652), LatLng(36.315, 74.649)],
-          fillColor: Colors.brown.withOpacity(0.4),
-          strokeColor: Colors.brown,
-          strokeWidth: 2,
-        ),
-      ]);
-
-      // Example rerouting polyline for G-10 flood detour
-      _polylines.add(
-        Polyline(
-          polylineId: const PolylineId('g10_detour'),
-          points: const [
-            LatLng(33.696, 72.989),
-            LatLng(33.696, 72.994),
-            LatLng(33.690, 72.994),
-          ],
-          color: Colors.greenAccent,
-          width: 4,
-          patterns: [PatternItem.dash(10), PatternItem.gap(10)], // Simulated animated/dash look
-        ),
-      );
-    });
-  }
-
-  void _onMapCreated(GoogleMapController controller) {
-    _mapController = controller;
-    // We would apply a dark map style here
-  }
-
   @override
   Widget build(BuildContext context) {
+    final activeId = ref.watch(activeDisasterIdProvider);
+    final disasters = ref.watch(confirmedDisastersProvider);
+    final selectedRouteId = ref.watch(selectedRouteIdProvider);
+
+    // Dynamic map overlay assembly based on active disaster
+    _markers.clear();
+    _polylines.clear();
+    _polygons.clear();
+
+    ConfirmedDisaster? activeDisaster;
+    if (activeId != null) {
+      activeDisaster = disasters.firstWhere(
+        (d) => d.id == activeId,
+        orElse: () => generateMockDisaster(
+          id: 'g10_flood',
+          title: 'G-10 Flash Flood',
+          type: 'Urban Flooding',
+          location: 'G-10 Markaz, Islamabad',
+          lat: 33.6938,
+          lng: 72.9910,
+          confidence: 94.2,
+          severity: 4,
+          status: 'Sentinel Triaged',
+        ),
+      );
+    }
+
+    if (activeDisaster != null) {
+      // 1. Move map camera to active disaster center
+      _moveCamera(activeDisaster.latLng);
+
+      // 2. Plot Blocked Segment (Thick Red Polyline)
+      _polylines.add(
+        Polyline(
+          polylineId: const PolylineId('blocked_route'),
+          points: activeDisaster.blockedPoints,
+          color: Colors.redAccent,
+          width: 7,
+          patterns: [PatternItem.dash(12), PatternItem.gap(8)],
+        ),
+      );
+
+      // 3. Blocked warning icon marker
+      _markers.add(
+        Marker(
+          markerId: const MarkerId('blocked_warning'),
+          position: activeDisaster.latLng,
+          infoWindow: InfoWindow(
+            title: '⚠️ EMERGENCY BLOCKED ROUTE',
+            snippet: activeDisaster.blockedRouteDescription,
+          ),
+          icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRed),
+        ),
+      );
+
+      // 4. Plot Alternative routes
+      for (final route in activeDisaster.alternativeRoutes) {
+        final isSelected = selectedRouteId == route.id;
+        final routeColor = route.id == 'alt_a'
+            ? const Color(0xFF39FF14) // Lime Green
+            : const Color(0xFF00E5FF); // Cyber Cyan
+
+        _polylines.add(
+          Polyline(
+            polylineId: PolylineId('route_${route.id}'),
+            points: route.points,
+            color: isSelected ? routeColor : routeColor.withOpacity(0.35),
+            width: isSelected ? 6 : 4,
+            patterns: isSelected ? [] : [PatternItem.dash(8), PatternItem.gap(8)],
+          ),
+        );
+
+        // Put a descriptive marker near the route midpoint
+        if (route.points.isNotEmpty) {
+          final midpoint = route.points[route.points.length ~/ 2];
+          _markers.add(
+            Marker(
+              markerId: MarkerId('marker_route_${route.id}'),
+              position: midpoint,
+              infoWindow: InfoWindow(
+                title: route.name,
+                snippet: 'Est. duration: ${route.duration} (${route.delayAverted})',
+              ),
+              icon: BitmapDescriptor.defaultMarkerWithHue(
+                route.id == 'alt_a' ? BitmapDescriptor.hueGreen : BitmapDescriptor.hueCyan,
+              ),
+            ),
+          );
+        }
+      }
+    } else {
+      // Seed default marker when no disaster is active
+      _markers.add(
+        const Marker(
+          markerId: MarkerId('default_center'),
+          position: LatLng(33.6938, 72.9910),
+          infoWindow: InfoWindow(
+            title: 'CIRO MONITORING STATION',
+            snippet: 'Islamabad HQ Hub - All quiet.',
+          ),
+        ),
+      );
+    }
+
     return Scaffold(
       body: Stack(
         children: [
-          // 1. Full-screen Google Map
           GoogleMap(
             onMapCreated: _onMapCreated,
             initialCameraPosition: _initialPosition,
             markers: _markers,
             polylines: _polylines,
             polygons: _polygons,
-            myLocationEnabled: true,
-            myLocationButtonEnabled: false,
+            myLocationEnabled: false,
             zoomControlsEnabled: false,
             mapToolbarEnabled: false,
             compassEnabled: true,
           ),
-          
-          // 2. Safe Area overlay for UI elements
           SafeArea(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                // Top Header
                 Padding(
                   padding: const EdgeInsets.all(16.0),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      _buildStatusPill(),
-                      IconButton(
-                        icon: const Icon(Icons.settings, color: Colors.white70),
-                        onPressed: () {},
-                      ),
+                      _buildStatusPill(activeDisaster != null),
+                      if (activeDisaster != null)
+                        IconButton(
+                          icon: const Icon(Icons.refresh, color: Colors.white70),
+                          onPressed: () {
+                            ref.read(activeDisasterIdProvider.notifier).state = null;
+                          },
+                        ),
                     ],
                   ),
                 ),
-                
               ],
             ),
           ),
+          if (activeDisaster != null) _buildRoutingSelectorDrawer(ref, activeDisaster, selectedRouteId),
         ],
       ),
-      floatingActionButton: FloatingActionButton(
-        backgroundColor: Theme.of(context).colorScheme.primary,
-        onPressed: _triggerHellMode,
-        child: const Icon(Icons.local_fire_department, color: Colors.white),
+      floatingActionButton: Padding(
+        padding: EdgeInsets.only(bottom: activeDisaster != null ? 180.0 : 0.0),
+        child: FloatingActionButton(
+          backgroundColor: Colors.redAccent,
+          onPressed: _triggerMockHellModeAlert,
+          child: const Icon(Icons.local_fire_department, color: Colors.white),
+        ),
       ),
     );
   }
 
-  Widget _buildStatusPill() {
+  void _onMapCreated(GoogleMapController controller) {
+    _mapController = controller;
+  }
+
+  void _moveCamera(LatLng target) {
+    _mapController?.animateCamera(
+      CameraUpdate.newCameraPosition(
+        CameraPosition(target: target, zoom: 14.5),
+      ),
+    );
+  }
+
+  void _triggerMockHellModeAlert() {
+    // Generate a fresh disaster and set it as active
+    final manualCrisis = generateMockDisaster(
+      id: 'g10_flood',
+      title: 'Manual Flood Report',
+      type: 'Urban Flooding',
+      location: 'Sector G-10, Islamabad',
+      lat: 33.6938,
+      lng: 72.9910,
+      confidence: 99.1,
+      severity: 5,
+      status: 'Commander Verified',
+    );
+    ref.read(confirmedDisastersProvider.notifier).addDisaster(manualCrisis);
+    ref.read(activeDisasterIdProvider.notifier).state = 'g10_flood';
+  }
+
+  Widget _buildStatusPill(bool hasActiveAlert) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       decoration: BoxDecoration(
-        color: Colors.black.withOpacity(0.6),
+        color: Colors.black.withOpacity(0.75),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Colors.greenAccent.withOpacity(0.3)),
+        border: Border.all(
+          color: hasActiveAlert ? Colors.redAccent.withOpacity(0.5) : Colors.greenAccent.withOpacity(0.3),
+        ),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -153,22 +225,134 @@ class _MapScreenState extends ConsumerState<MapScreen> {
           Container(
             width: 8,
             height: 8,
-            decoration: const BoxDecoration(
-              color: Colors.greenAccent,
+            decoration: BoxDecoration(
+              color: hasActiveAlert ? Colors.redAccent : Colors.greenAccent,
               shape: BoxShape.circle,
             ),
           ),
           const SizedBox(width: 8),
-          const Text(
-            'CIRO ACTIVE',
+          Text(
+            hasActiveAlert ? 'ACTIVE INCIDENT IN PROGRESS' : 'CIRO MONITORING NORMAL',
             style: TextStyle(
-              color: Colors.greenAccent,
+              color: hasActiveAlert ? Colors.redAccent : Colors.greenAccent,
               fontWeight: FontWeight.bold,
-              letterSpacing: 1.2,
-              fontSize: 12,
+              letterSpacing: 1.0,
+              fontSize: 11,
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildRoutingSelectorDrawer(WidgetRef ref, ConfirmedDisaster disaster, String selectedId) {
+    return Align(
+      alignment: Alignment.bottomCenter,
+      child: Container(
+        margin: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: const Color(0xFF151515).withOpacity(0.95),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: Colors.white.withOpacity(0.08)),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.6),
+              blurRadius: 16,
+              offset: const Offset(0, 4),
+            )
+          ],
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Row(
+              children: [
+                const Icon(Icons.alt_route, color: Colors.greenAccent, size: 16),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    'ROUTING CONTROLLER: ${disaster.title.toUpperCase()}',
+                    style: const TextStyle(
+                      color: Colors.white60,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 11,
+                      letterSpacing: 1.0,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            Row(
+              children: disaster.alternativeRoutes.map((route) {
+                final isSelected = selectedId == route.id;
+                final routeColor = route.id == 'alt_a' ? const Color(0xFF39FF14) : const Color(0xFF00E5FF);
+
+                return Expanded(
+                  child: Container(
+                    margin: const EdgeInsets.symmetric(horizontal: 4),
+                    child: ElevatedButton(
+                      onPressed: () {
+                        ref.read(selectedRouteIdProvider.notifier).state = route.id;
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: isSelected ? routeColor.withOpacity(0.2) : const Color(0xFF222222),
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          side: BorderSide(
+                            color: isSelected ? routeColor : Colors.white.withOpacity(0.05),
+                            width: 1.5,
+                          ),
+                        ),
+                      ),
+                      child: Column(
+                        children: [
+                          Text(
+                            route.id == 'alt_a' ? 'ALPHA ROUTE' : 'BETA ROUTE',
+                            style: TextStyle(
+                              color: isSelected ? routeColor : Colors.white70,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 11,
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            '${route.duration} (${route.delayAverted.replaceAll(" delay averted", "")})',
+                            style: const TextStyle(color: Colors.white38, fontSize: 9),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                );
+              }).toList(),
+            ),
+            const SizedBox(height: 12),
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: Colors.black.withOpacity(0.4),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Row(
+                children: const [
+                  Icon(Icons.info, size: 14, color: Colors.amberAccent),
+                  SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      'Alternative detours bypass active flood boundaries and are synchronized with localized city graphs.',
+                      style: TextStyle(color: Colors.white54, fontSize: 10),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

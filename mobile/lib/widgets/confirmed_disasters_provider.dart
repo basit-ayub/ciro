@@ -97,8 +97,8 @@ class ConfirmedDisastersNotifier extends StateNotifier<List<ConfirmedDisaster>> 
       title: 'G-10 Flash Flood',
       type: 'Urban Flooding',
       location: 'G-10 Markaz, Islamabad',
-      lat: 33.6938,
-      lng: 72.9910,
+      lat: 33.6912,
+      lng: 73.0118,
       confidence: 94.2,
       severity: 4,
       status: 'Sentinel Triaged',
@@ -261,8 +261,8 @@ class ConfirmedDisastersNotifier extends StateNotifier<List<ConfirmedDisaster>> 
             final title = data['incident_type'] ?? 'Urban Flooding';
             final type = data['incident_type'] ?? 'Emergency';
             final geo = data['geo'] as Map<dynamic, dynamic>? ?? {};
-            final lat = geo['lat']?.toDouble() ?? 33.6938;
-            final lng = geo['lon']?.toDouble() ?? 72.9910;
+            final lat = geo['lat']?.toDouble() ?? 33.6912;
+            final lng = geo['lon']?.toDouble() ?? 73.0118;
             final confidence = ((data['confidence'] ?? 0.8) as num).toDouble() * 100.0;
             final severity = (data['severity'] ?? 4) as int;
             final status = data['status'] ?? 'assessed';
@@ -337,11 +337,11 @@ ConfirmedDisaster generateMockDisaster({
       status: status,
       timestamp: DateTime.now(),
       emergencyDeptName: 'PIMS Hospital (G-8/3 Emergency)',
-      emergencyDeptLatLng: const LatLng(33.6980, 73.0450),
+      emergencyDeptLatLng: const LatLng(33.7047, 73.0564),
       blockedRouteDescription: 'Srinagar Highway exit to G-10 Service Road East completely flooded',
       blockedPoints: const [
-        LatLng(33.6820, 73.0000),
-        LatLng(33.6860, 73.0010),
+        LatLng(33.6820, 73.0080),
+        LatLng(33.6860, 73.0090),
       ],
       alternativeRoutes: [
         AlternativeRoute(
@@ -350,13 +350,12 @@ ConfirmedDisaster generateMockDisaster({
           duration: '11 mins',
           delayAverted: '15 mins delay averted',
           points: const [
-            LatLng(33.6980, 73.0450), // PIMS Emergency
-            LatLng(33.7010, 73.0450), // Ibn-e-Sina Road East
-            LatLng(33.7000, 73.0300), // Ibn-e-Sina Road Mid
-            LatLng(33.6990, 73.0100), // Ibn-e-Sina Road West
-            LatLng(33.6980, 72.9980), // Ibn-e-Sina Road Sector Entrance
-            LatLng(33.6975, 72.9920), // G-10 Service Road North
-            LatLng(33.6938, 72.9910), // G-10 Markaz (Crisis Hub)
+            LatLng(33.7047, 73.0564), // PIMS Emergency
+            LatLng(33.7025, 73.0400), // Ibn-e-Sina Road G-8/F-8 intersection
+            LatLng(33.7005, 73.0200), // Ibn-e-Sina Road G-9/F-9 intersection
+            LatLng(33.6985, 73.0110), // Ibn-e-Sina Road Sector G-10 entrance
+            LatLng(33.6950, 73.0115), // G-10 Service Road North
+            LatLng(33.6912, 73.0118), // G-10 Markaz (Crisis Hub)
           ],
         ),
         AlternativeRoute(
@@ -365,15 +364,12 @@ ConfirmedDisaster generateMockDisaster({
           duration: '16 mins',
           delayAverted: '10 mins delay averted',
           points: const [
-            LatLng(33.6980, 73.0450), // PIMS Emergency
-            LatLng(33.6890, 73.0420), // Srinagar Highway G-8
-            LatLng(33.6850, 73.0200), // Srinagar Highway G-9
-            LatLng(33.6820, 73.0000), // Srinagar Highway G-10 exit (Bypass Start)
-            LatLng(33.6850, 73.0050), // Detour via G-9 Service Rd West
-            LatLng(33.6900, 73.0060), // G-9 Service Rd North
-            LatLng(33.6920, 73.0020), // G-10 Sumbal Road East gate
-            LatLng(33.6935, 72.9950), // Sumbal Road Mid
-            LatLng(33.6938, 72.9910), // G-10 Markaz (Crisis Hub)
+            LatLng(33.7047, 73.0564), // PIMS Emergency
+            LatLng(33.6890, 73.0480), // Srinagar Highway G-8
+            LatLng(33.6850, 73.0250), // Srinagar Highway G-9
+            LatLng(33.6820, 73.0080), // Srinagar Highway G-10 exit (Bypass Start)
+            LatLng(33.6870, 73.0090), // Detour via Sumbal Road East gate
+            LatLng(33.6912, 73.0118), // G-10 Markaz (Crisis Hub)
           ],
         ),
       ],
